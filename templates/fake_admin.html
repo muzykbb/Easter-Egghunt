@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Console - Restricted</title>
+    <!-- Not linking main style.css to maintain distinct look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        /* Enhanced Fake Console Styles */
+        :root {
+            --console-bg: #0d0d1a;
+            --console-text: #b0c4de; /* Lighter blue/grey */
+            --console-border: #4a4a6a;
+            --module-bg: #1a1a2e;
+            --module-border: #33334a;
+            --header-color: #ffa500; /* Brighter Orange */
+            --ok-color: #32cd32; /* Lime Green */
+            --warning-color: #ffd700; /* Gold */
+            --error-color: #ff4757; /* Brighter Red */
+            --accent-color-1: #00ffff; /* Aqua */
+            --accent-color-2: #da70d6; /* Orchid */
+            --dial-bg: #2a2a3a;
+            --dial-border: #555;
+        }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--console-bg); color: var(--console-text); font-family: 'Roboto Mono', monospace; line-height: 1.4; margin: 0; padding: 10px; font-size: 13px; }
+        .console-wrapper { max-width: 1600px; margin: 10px auto; padding: 15px 20px; border: 2px solid var(--console-border); background: #1f1f30; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 255, 255, 0.2), inset 0 0 15px rgba(0,0,0,0.6); }
+        h1 { text-align: center; color: var(--error-color); font-family: 'Orbitron', sans-serif; letter-spacing: 3px; margin-bottom: 20px; font-size: 1.6em; text-shadow: 0 0 8px var(--error-color); animation: flicker 2.5s infinite alternate; }
+        .console-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+        .console-module { background-color: var(--module-bg); border: 1px solid var(--module-border); border-radius: 4px; padding: 10px 12px; min-height: 150px; box-shadow: inset 0 0 8px rgba(0,0,0,0.5); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .console-module h3 { color: var(--header-color); margin-top: 0; font-size: 1.05em; border-bottom: 1px dashed #555; padding-bottom: 5px; margin-bottom: 8px; font-family: 'Orbitron', sans-serif; cursor: pointer; } /* Added cursor */
+        .console-module h3:hover { color: white; }
+        .console-module p, .console-module div { font-size: 0.9em; margin: 3px 0; }
+        .console-module p { display: flex; justify-content: space-between; align-items: center; }
+        .console-module span { font-weight: bold; }
+        .console-module span.ok { color: var(--ok-color); }
+        .console-module span.warning { color: var(--warning-color); animation: pulse-warn 1.5s infinite alternate; }
+        .console-module span.error { color: var(--error-color); animation: pulse-err 1s infinite alternate; }
+        .console-module span.accent { color: var(--accent-color-1); }
+        .console-module span.accent2 { color: var(--accent-color-2); }
+        .console-module span.label { color: var(--console-text); font-weight: normal; margin-right: 5px; }
+
+        .dial-group { margin-top: auto; display: flex; flex-wrap: wrap; justify-content: center; padding-top: 8px; border-top: 1px solid #2a2a3a; }
+        .dial { border: 2px solid var(--dial-border); border-radius: 50%; width: 28px; height: 28px; display: inline-flex; justify-content: center; align-items: center; margin: 4px; font-size: 0.7em; background: linear-gradient(145deg, #404050, #202030); position: relative; cursor: pointer; box-shadow: 1px 1px 3px rgba(0,0,0,0.6), inset 0 0 3px rgba(255,255,255,0.1); color: #eee; font-weight: bold; }
+        .dial:hover { background: linear-gradient(145deg, #505060, #303040); }
+        .dial::after { content: ''; position: absolute; width: 2px; height: 9px; background-color: #f0f0f0; top: 4px; left: 13px; transform-origin: 50% 10px; animation: spin-dial 3s linear infinite var(--spin-delay, 0s); }
+        .blinking-light { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-left: 5px; animation: blink 1.1s infinite alternate var(--blink-delay, 0s); vertical-align: middle; border: 1px solid rgba(0,0,0,0.5); }
+        .green { background-color: var(--ok-color); box-shadow: 0 0 5px var(--ok-color); }
+        .yellow { background-color: var(--warning-color); box-shadow: 0 0 5px var(--warning-color); }
+        .red { background-color: var(--error-color); box-shadow: 0 0 5px var(--error-color); }
+        .blue { background-color: var(--accent-color-1); box-shadow: 0 0 5px var(--accent-color-1); }
+        .purple { background-color: var(--accent-color-2); box-shadow: 0 0 5px var(--accent-color-2); }
+
+        .progress-bar { background-color: #303040; border-radius: 3px; height: 12px; overflow: hidden; margin: 6px 0; border: 1px solid #111; }
+        .progress-bar-inner { height: 100%; background-color: var(--ok-color); width: 75%; animation: progress-pulse 2s infinite ease-in-out; box-shadow: inset 0 0 3px rgba(0,0,0,0.5); }
+        .progress-bar-inner.warning { background-color: var(--warning-color); animation-duration: 1.5s; }
+        .progress-bar-inner.error { background-color: var(--error-color); animation-duration: 1s; }
+
+        input[type="password"], input[type="text"], select.decoy-link { background-color: #101020; border: 1px solid var(--module-border); color: var(--console-text); padding: 5px 8px; font-family: 'Roboto Mono', monospace; font-size: 0.9em; margin: 4px 0; border-radius: 3px; }
+        input.fake-input { width: calc(100% - 18px); box-sizing: border-box; }
+        label { color: var(--accent-color-2); margin-right: 5px; font-size: 0.9em; }
+        select.decoy-link { cursor: pointer; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--console-text) 50%), linear-gradient(135deg, var(--console-text) 50%, transparent 50%); background-position: calc(100% - 15px) calc(1em + 2px), calc(100% - 10px) calc(1em + 2px); background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 25px; }
+        select.code-digit { width: 45px; text-align: center; padding: 5px; margin: 0 2px;}
+
+        button.decoy-button, .fake-button { background-color: #4a4a6a; border: 1px solid #6a6a8a; color: #ccc; padding: 6px 12px; cursor: pointer; font-family: 'Roboto Mono', monospace; font-size: 0.9em; border-radius: 3px; margin-top: 8px; display: block; width: 100%; box-sizing: border-box; transition: background-color 0.2s ease; }
+        button.decoy-button:hover, .fake-button:hover { background-color: #5a5a7a; }
+
+        /* The special module and checkbox */
+
+        #secret-filter { margin-top: auto; border-top: 1px solid var(--accent-color-2); padding-top: 10px; text-align: center; }
+        #secret-filter input[type="checkbox"] { margin-right: 8px; vertical-align: middle; cursor: pointer; accent-color: var(--accent-color-2); /* Modern browsers */}
+        #secret-filter label { cursor: pointer; color: var(--accent-color-2); font-weight: bold; font-size: 0.95em; vertical-align: middle; }
+        #secret-filter label:hover { color: white; }
+
+        /* Real admin links area */
+        #real-admin-links { display: none; margin-top: 25px; padding: 20px; background-color: #101020; border: 1px solid var(--ok-color); border-radius: 5px; text-align: center; }
+        #real-admin-links h4 { margin-top: 0; color: var(--ok-color); font-family: 'Orbitron', sans-serif; }
+        #real-admin-links a { color: var(--accent-color-1); margin: 0 15px; font-size: 1.2em; text-decoration: none; transition: color 0.2s;}
+        #real-admin-links a:hover { color: white; text-decoration: underline; }
+
+        /* Animations */
+        @keyframes spin-dial { from { transform: rotate(0deg); } to { transform: rotate(720deg); } }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.2; } }
+        @keyframes flicker { 0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--error-color);} 50% { opacity: 0.8; text-shadow: 0 0 15px var(--error-color); } }
+        @keyframes pulse-warn { from { opacity: 1; } to { opacity: 0.6; } }
+        @keyframes pulse-err { from { opacity: 1; } to { opacity: 0.5; } }
+        @keyframes progress-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.4); } }
+
+    </style>
+</head>
+<body>
+    <div class="console-wrapper">
+        <h1>HYPERDRIVE SYSTEMS MONITOR - AUTHORIZATION REQUIRED</h1>
+        <div class="console-grid">
+
+            <!-- Populate with many modules (~70 if desired, this is ~20 example variations) -->
+            <div class="console-module"><h3 class="decoy-link">Plasma Injector Array</h3><p><span class="label">Status:</span><span class="ok">Nominal</span></p><p><span class="label">Flow Rate:</span><span>1.5e6 L/s</span><i class="blinking-light green"></i></p><div class="progress-bar"><div class="progress-bar-inner" style="width: 95%;"></div></div><div class="dial-group"><span class="dial decoy-link">P1</span><span class="dial decoy-link">P2</span></div></div>
+            <div class="console-module"><h3 class="decoy-link">Graviton Stabilizers</h3><p><span class="label">Field Variance:</span><span>0.02%</span></p><p><span class="label">Resonance Freq:</span><span class="accent">1.2 THz</span></p><div class="dial-group"><span class="dial decoy-link">G1</span><span class="dial decoy-link">G2</span><span class="dial decoy-link">G3</span></div></div>
+            <div class="console-module"><h3 class="decoy-link">Navigation Computer</h3><p><span class="label">Stellar Cartography:</span><span class="ok">Synced</span></p><p><span class="label">Route Planner:</span><span>Idle</span></p><p><span class="label">Wormhole Predict:</span><span class="warning">Low Confidence</span><i class="blinking-light yellow"></i></p></div>
+            <div class="console-module"><h3 class="decoy-link">Atmospheric Processor</h3><p><span class="label">CO2 Scrubbers:</span><span>ONLINE</span></p><p><span class="label">O2 Levels:</span><span>20.9%</span><i class="blinking-light green"></i></p><div class="progress-bar"><div class="progress-bar-inner" style="width: 88%;"></div></div></div>
+            <div class="console-module"><h3 class="decoy-link">Impulse Engines</h3><p><span class="label">Thruster Output:</span><span>Idle</span></p><p><span class="label">Fusion Temp:</span><span>300 MK</span></p><p><span class="label">Deuterium Tank:</span><span>85%</span><i class="blinking-light blue"></i></p></div>
+            <div class="console-module"><h3 class="decoy-link">Cryo-Stasis Pods</h3><p><span class="label">Pod 7 Status:</span><span class="warning">Offline</span><i class="blinking-light yellow"></i></p><p><span class="label">Bio-Monitor:</span> <span class="error">ERROR</span></p><div class="progress-bar"><div class="progress-bar-inner error" style="width: 5%;"></div></div></div>
+            <div class="console-module"><h3 class="decoy-link">Tractor Beam Emitter</h3><p><span class="label">Power:</span><span>0%</span></p><p><span class="label">Target Lock:</span><span class="error">Failed</span></p><p><span class="label">Frequency:</span> <input type="text" class="fake-input fake-trigger" value="140.5 MHz"></p></div>
+            <div class="console-module"><h3 class="decoy-link">Replicator Unit 4</h3><p><span class="label">Pattern Buffer:</span><span>Empty</span></p><p><span class="label">Energy Source:</span><span class="ok">Connected</span></p><div><span class="label">Item Queue:</span> <select class="decoy-link"><option>Tea, Earl Grey</option><option>Coffee, Black</option><option>Water, Ice</option></select></div></div>
+            <div class="console-module"><h3 class="decoy-link">Transporter Room 3</h3><p><span class="label">Heisenberg Comp:</span><span class="warning">Recalibrating</span></p><p><span class="label">Signal Lock:</span><span>Weak</span><i class="blinking-light yellow"></i></p><p><span class="label">Pad Status:</span><span class="error">DISABLED</span></p></div>
+            <div class="console-module"><h3 class="decoy-link">Genesis Device Control</h3><p><span class="label">Matrix Status:</span><span class="error">UNSTABLE</span><i class="blinking-light red"></i></p><p><span class="label">Countdown:</span><button class="decoy-button">INITIATE</button></p></div>
+            <div class="console-module"><h3 class="decoy-link">Positronic Net Analysis</h3><p><span class="label">Data Stream:</span><span>Active</span><i class="blinking-light blue"></i></p><p><span class="label">Neural Pathways:</span><span class="ok">Nominal</span></p></div>
+            <div class="console-module"><h3 class="decoy-link">Borg Assimilation Monitor</h3><p><span class="label">Resistance Level:</span><span>Calculating...</span></p><p><span class="label">Nanoprobe Count:</span><span>0</span></p></div>
+            <div class="console-module"><h3 class="decoy-link">FTL Drive Charge</h3><p><span class="label">Capacitor Bank:</span><span>99%</span><i class="blinking-light green"></i></p><div class="progress-bar"><div class="progress-bar-inner" style="width: 99%;"></div></div><p><span class="label">Jump Status:</span><span class="ok">Ready</span></p></div>
+            <div class="console-module"><h3 class="decoy-link">Auxiliary Deflector</h3><p><span class="label">Mode:</span><span>Navigational</span></p><p><span class="label">Boson Particle Count:</span><span>Nominal</span></p><p><span class="label">Dish Alignment:</span><span class="ok">Optimal</span></p></div>
+            <div class="console-module"><h3 class="decoy-link">Environmental Controls</h3><p><span class="label">Deck 8 Temp:</span><span>22 C</span></p><p><span class="label">Humidity:</span><span>48%</span></p><p><span class="label">Air Filter:</span><span>Cycle Active</span><i class="blinking-light green"></i></p></div>
+            <div class="console-module"><h3 class="decoy-link">Communications Array</h3><p><span class="label">Subspace Band:</span><span>Encrypted Ch. 5</span></p><p><span class="label">Signal Strength:</span><span>Strong</span></p><p><span class="label">Decryption Key:</span><input type="text" class="fake-input fake-trigger" value="************"></p></div>
+            <div class="console-module"><h3 class="decoy-link">Jefferies Tube Access</h3><p><span class="label">Junction 3 Status:</span><span class="ok">Clear</span></p><p><span class="label">Pressure:</span><span>Normal</span></p><p><span class="label">Life Signs:</span><span>None</span></p></div>
+
+            <!-- Fake Password Module -->
+            <div class="console-module">
+                <h3>Security Authentication</h3>
+                <label for="fake-password">Password:</label>
+                <input type="password" id="fake-password" name="fake-password" size="15" class="fake-trigger">
+                <button type="button" class="decoy-button">Authenticate</button>
+                <p><span class="label">Status:</span> <span class="error">Access Denied</span><i class="blinking-light red"></i></p>
+            </div>
+
+            <!-- Fake Code Module -->
+            <div class="console-module">
+                <h3>Override Code Entry</h3>
+                <p>Enter 4-Digit Code:</p>
+                <div class="code-dials">
+                    <select class="decoy-link code-digit"><script>for(let i=0;i<10;i++)document.write(`<option>${i}</option>`);</script></select>
+                    <select class="decoy-link code-digit"><script>for(let i=0;i<10;i++)document.write(`<option>${i}</option>`);</script></select>
+                    <select class="decoy-link code-digit"><script>for(let i=0;i<10;i++)document.write(`<option>${i}</option>`);</script></select>
+                    <select class="decoy-link code-digit"><script>for(let i=0;i<10;i++)document.write(`<option>${i}</option>`);</script></select>
+                </div>
+                <button id="fake-code-button" class="fake-button">Submit Code</button>
+                 <p><span class="label">Verification:</span> <span class="warning">Awaiting Input...</span></p>
+            </div>
+
+            <!-- Module with Secret Checkbox -->
+            <div class="console-module"> 
+                <h3>Subspace Field Settings</h3>
+                 <p><span class="label">Harmonic Resonance:</span> <span>Stable</span></p>
+                 <p><span class="label">Phase Variance:</span> <span>0.001</span><i class="blinking-light blue"></i></p>
+                 <p><span class="label">Heisenberg Compensator:</span> <span class="ok">ONLINE</span></p>
+                 <!-- This is the REAL trigger -->
+                 <div id="secret-filter">
+                    <input type="checkbox" id="relativity-plus-filter" style="vertical-align: middle;">
+                    <label for="relativity-plus-filter">Engage Relativity Plus Filter</label>
+                </div>
+            </div>
+
+            <!-- Add more diverse fake modules -->
+            <div class="console-module"><h3 class="decoy-link">Shield Harmonics</h3><p><span class="label">Cycle:</span><span>Modulating</span><i class="blinking-light purple"></i></p><div class="dial-group"><span class="dial decoy-link">S</span><span class="dial decoy-link">H</span></div></div>
+            <div class="console-module"><h3 class="decoy-link">Cargo Bay 2</h3><p><span class="label">Door Status:</span><span>Sealed</span></p><p><span class="label">Contents:</span><span>Unknown Artifact</span><i class="blinking-light red"></i></p></div>
+            <div class="console-module"><h3 class="decoy-link">Waste Extraction</h3><p><span class="label">Plasma Conduit:</span><span class="ok">Clear</span></p><p><span class="label">Recycler Status:</span><span>Standby</span></p></div>
+
+            <!-- Fill with more copies or variations until sufficiently busy -->
+             <div class="console-module"><h3 class="decoy-link">Temporal Sensor Array</h3><p>Chroniton Levels: <span class="warning">Elevated</span></p><p>Scan Depth: <span>+/- 5 Years</span></p></div>
+             <div class="console-module"><h3 class="decoy-link">Medical Bay Scanner</h3><p>Bio-Bed 1: <span class="ok">Empty</span></p><p>Vital Signs Monitor: <span>Offline</span></p></div>
+             <div class="console-module"><h3 class="decoy-link">Torpedo Bay Loader</h3><p>Tube 1: <span class="ok">Ready</span></p><p>Tube 2: <span class="error">Jammed</span><i class="blinking-light red"></i></p></div>
+             <div class="console-module"><h3 class="decoy-link">Alien Artifact Analysis</h3><p>Energy Reading: <span class="accent2">Unknown</span></p><p>Origin: <span>Delta Quadrant?</span></p></div>
+
+
+        </div> <!-- End console-grid -->
+
+        <!-- Hidden Real Admin Links -->
+        <div id="real-admin-links" style="display: none;">
+             <h4>:: SYSTEM OVERRIDE :: AUTHORIZED ::</h4>
+             <a href="{{ url_for('admin_area') }}">View Next Questions Log</a>
+             <a href="{{ url_for('admin_print_qrs') }}">Generate Tactical QR Markers</a>
+             <!-- Optional: Add back link to App QR if desired -->
+             <!-- <a href="{{ url_for('secret_qr_console') }}">Display Network Beacon QR</a> -->
+        </div>
+    </div> <!-- End console-wrapper -->
+
+    <script>
+        // --- Fake Admin Interaction Script ---
+        const secretCheckbox = document.getElementById('relativity-plus-filter');
+        const realAdminLinks = document.getElementById('real-admin-links');
+
+        // Function to redirect to oops page
+        function redirectToOops(event) {
+            // Prevent default if it's a link or button, though not strictly necessary here
+            if (event) event.preventDefault();
+            console.log("Fake interaction triggered! Redirecting to /oops");
+            window.location.href = "{{ url_for('oops_wrong_button') }}";
+        }
+
+        // Reveal real links on checkbox change
+        if (secretCheckbox && realAdminLinks) {
+            secretCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    console.log("Secret filter engaged!");
+                    realAdminLinks.style.display = 'block';
+                    realAdminLinks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    realAdminLinks.style.display = 'none';
+                }
+            });
+        } else { console.error("Missing secret checkbox or real admin links div"); }
+
+        // Add listeners to ALL decoy elements
+        // Use more specific selectors if possible, but classes work well
+        const decoyButtons = document.querySelectorAll('.decoy-button, .fake-button');
+        const decoyLinks = document.querySelectorAll('.decoy-link'); // Includes h3, select
+        const decoyDials = document.querySelectorAll('.dial'); // Spans acting as dials
+        const decoyInputs = document.querySelectorAll('.fake-input.fake-trigger'); // Inputs meant to be decoys
+
+        decoyButtons.forEach(el => el.addEventListener('click', redirectToOops));
+        decoyLinks.forEach(el => el.addEventListener('click', redirectToOops));
+        decoyDials.forEach(el => el.addEventListener('click', redirectToOops));
+        decoyInputs.forEach(el => {
+            el.addEventListener('focus', redirectToOops); // Redirect even on focus
+            el.addEventListener('keypress', function(e){ if(e.key === 'Enter') redirectToOops(); }); // Redirect on Enter
+        });
+
+        console.log(`Added oops listeners to ${decoyButtons.length} buttons, ${decoyLinks.length} links/selects, ${decoyDials.length} dials, ${decoyInputs.length} inputs.`);
+
+        // Add random delays to animations for more 'liveliness'
+        document.querySelectorAll('.dial::after').forEach(el => {
+            el.style.setProperty('--spin-delay', `-${Math.random() * 5}s`);
+        });
+        document.querySelectorAll('.blinking-light').forEach(el => {
+            el.style.setProperty('--blink-delay', `-${Math.random() * 1.2}s`);
+        });
+        document.querySelectorAll('.progress-bar-inner').forEach(el => {
+            el.style.setProperty('--progress', `${Math.random()*100}%`); // Randomize progress bars
+        });
+
+    </script>
+</body>
+</html>

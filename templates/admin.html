@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .admin-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .admin-section h2 {
+             margin-top: 0;
+             color: #6c757d; /* Grey */
+             border-bottom: 2px solid #eee;
+             padding-bottom: 5px;
+        }
+         .qr-container { /* Reuse styles from secret_qr if needed */
+            text-align: center;
+            margin-top: 10px;
+         }
+         .qr-container img { max-width: 250px; height: auto; border: 1px solid #ccc; }
+         code { background-color: #e9ecef; padding: 2px 5px; border-radius: 3px; font-family: monospace; }
+         dt { font-weight: bold; color: #007bff; margin-top: 10px;}
+         dd { margin-left: 20px; margin-bottom: 8px; }
+         .no-questions { font-style: italic; color: #6c757d; }
+    </style>
+
+    <style>
+        /* ... (keep existing admin styles) ... */
+        .print-qr-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            background-color: #17a2b8; /* Teal */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+             transition: background-color 0.2s ease;
+        }
+        .print-qr-button:hover {
+             background-color: #138496;
+        }
+        /* ... (keep existing styles) ... */
+        .unlock-toggle-form {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .unlock-toggle-form label {
+            font-weight: bold;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .unlock-toggle-form input[type="checkbox"] {
+            margin-right: 5px;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        .unlock-toggle-form button {
+            padding: 5px 15px;
+            font-size: 0.9em;
+            margin-left: 15px;
+            cursor: pointer;
+            /* Add some button styling if needed */
+             background-color: #ffc107; /* Amber */
+             border: 1px solid #d39e00;
+             color: #333;
+             border-radius: 4px;
+        }
+         .unlock-toggle-form button:hover { background-color: #e0a800; }
+         .status-indicator { font-style: italic; color: #6c757d; margin-left: 5px;}
+    </style>
+</head>
+
+
+<body>
+    <div class="content-wrapper">
+        <!-- Flashes -->
+         {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes>
+                {% for category, message in messages %}
+                    <li class="{{ category or 'info' }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <h1>Admin Console</h1>
+
+ 
+
+        <div class="admin-section">
+             <h2>Game Settings</h2>
+             <!-- Unlock Toggle Form -->
+             <form action="{{ url_for('admin_toggle_lock') }}" method="POST" class="unlock-toggle-form">
+                 <input type="checkbox" id="unlock_mode_checkbox" name="unlock_mode_checkbox" value="yes" {% if hunt_is_unlocked %}checked{% endif %}>
+                 <label for="unlock_mode_checkbox">Allow Direct URL Access?</label>
+                 <span class="status-indicator">(Currently: {{ "UNLOCKED" if hunt_is_unlocked else "LOCKED" }})</span>
+                 <button type="submit">Update</button>
+             </form>
+             <!-- Minigame Toggle Form -->
+              <form action="{{ url_for('admin_toggle_minigames') }}" method="POST" class="unlock-toggle-form" style="margin-top: 15px;">
+                 <input type="checkbox" id="disable_minigames_checkbox" name="disable_minigames_checkbox" value="yes" {% if minigames_disabled %}checked{% endif %}>
+                 <label for="disable_minigames_checkbox">Disable ALL Minigames?</label>
+                 <span class="status-indicator">(Currently: {{ "DISABLED" if minigames_disabled else "ENABLED" }})</span>
+                 <button type="submit">Update</button>
+             </form>
+             <p style="font-size: 0.85em; margin-top: 10px; color: #555;">
+                If 'Direct URL Access' is checked, users can jump steps. If 'Disable Minigames' is checked, minigame steps will behave like standard question steps.
+             </p>
+        </div>
+
+
+            <h2>Next 3 Questions</h2>
+            {% if next_questions %}
+                <dl>
+                    {% for q_id, q_data in next_questions.items() %}
+                        <dt>Question ID: {{ q_id }} (Step: {{ FIBONACCI_SEQUENCE[loop.index0 + (session.get('last_correct_step') | find_index(FIBONACCI_SEQUENCE) if session.get('last_correct_step') else -1) + 1] if q_id in HUNT_DATA_KEYS_ORDERED else '?' }})</dt>
+                        <dd><strong>Question:</strong> {{ q_data.question }}</dd>
+                        <dd><strong>Answer:</strong> <code>{{ q_data.answer }}</code></dd>
+                        <dd><strong>Hint:</strong> {{ q_data.hint }}</dd>
+                        <dd><strong>Next Location:</strong> {{ q_data.next_location_description }}</dd>
+                    {% endfor %}
+                </dl>
+            {% else %}
+                <p class="no-questions">No more questions to display or error fetching data.</p>
+            {% endif %}
+             {# Custom filter needed to get index easily in template - or do logic in Python #}
+             {# Simplified display without step ID for now #}
+        </div>
+
+
+         <!-- Section for QR Code -->
+        <div class="admin-section">
+            <h2>App QR Code</h2>
+            <div class="qr-container">
+                 <p>App URL: <a href="{{ display_url }}" target="_blank"><code>{{ display_url }}</code></a></p>
+                 {% if qr_code_uri %}
+                     <p>Scan for Hunt:</p>
+                     <img src="{{ qr_code_uri }}" alt="Egg Hunt URL QR Code">
+                 {% elif display_url != "N/A" %}
+                     <p style="color: red;">Error generating QR code.</p>
+                 {% else %}
+                      <p style="color: red;">Could not find server IP for QR code.</p>
+                 {% endif %}
+            </div>
+        </div>
+
+
+        <p style="text-align: center; margin-top: 20px;">
+             <a href="{{ url_for('home') }}">Back to Home</a>
+             | <a href="{{ url_for('secret_qr_console') }}">View Secret QR Console Only</a>
+        </p>
+
+            <div style="text-align: center;">
+             <a href="{{ url_for('admin_print_qrs') }}" class="print-qr-button">Generate All QR Codes for Printing</a>
+        </div>
+
+
+        <p style="text-align: center; margin-top: 20px;">
+             <a href="{{ url_for('home') }}">Back to Home</a>
+             | <a href="{{ url_for('secret_qr_console') }}">View App URL QR</a> {# Link to the other admin page #}
+        </p>
+    </div>
+
+    <!-- No eggs needed on admin page -->
+</body>
+</html>

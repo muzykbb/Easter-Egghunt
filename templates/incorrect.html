@@ -1,0 +1,40 @@
+<!-- templates/incorrect.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Try Again</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Basic Flash Message Styling */
+        .flashes { list-style: none; padding: 15px 0; margin: 0 0 15px 0; }
+        .flashes li { padding: 10px 15px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+        .flashes li.warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; } /* Yellowish */
+        .flashes li.error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; } /* Reddish */
+        .flashes li.info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; } /* Bluish */
+        .flashes li.success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; } /* Greenish */
+    </style>
+</head>
+<body>
+     <!-- Display flashed messages (will include Bob's remark) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flashes>
+            {% for category, message in messages %}
+                {# Default to 'info' category if none provided #}
+                <li class="{{ category or 'info' }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <h1>Incorrect</h1>
+    <p>You submitted: {{ submitted_answer }}</p> <!-- XSS Vulnerability Here! -->
+    <!-- Message now comes from flash -->
+    <a href="{{ url_for('hunt_step', step_id=step_id) }}">Go back to Step {{ step_id }}</a>
+
+    <!-- Egg animations -->
+    <div id="egg-container"></div>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

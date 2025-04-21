@@ -1,0 +1,20 @@
+{
+    "1": {
+        "question": "Which country has the highest number of islands in the world?",
+        "answer": "Sweden",
+        "hint": "It has over 267000 islands.",
+        "next_location_description": "2"    
+    },
+    "2": {
+        "question": "Welcher Flughafen ist der hochstgelegene kommerziell betriebene Flughafen der Welt?",
+        "answer": "Daocheng Yading",
+        "hint": "Located in China at an altitude of 4411 meters.",
+        "next_location_description": "5"    
+    },
+    "3": {
+        "question": "What is the only country that has territory in all four hemispheres?",
+        "answer": "Kiribati",
+        "hint": "It is a Pacific island nation straddling the equator.",
+        "next_location_description": "6"    
+    }
+}

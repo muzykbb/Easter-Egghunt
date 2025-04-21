@@ -1,0 +1,114 @@
+/* static/css/style.css */
+
+/* --- Base & Mobile First --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); /* Brighter blue gradient */
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    transition: filter 0.5s ease-out; /* Add transition for pale mode */
+}
+
+/* --- PALE MODE --- */
+body.pale-mode {
+    /* Simple filter approach - Adjust saturation/brightness as desired */
+    filter: saturate(50%) brightness(105%);
+}
+/* Add more specific pale styles below if needed */
+
+.content-wrapper {
+    max-width: 700px; /* Slightly narrower for mobile feel */
+    margin: 20px auto;
+    padding: 20px 25px; /* More padding */
+    background-color: rgba(255, 255, 255, 0.92);
+    border-radius: 15px; /* More rounded */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    /* Add transition if background/shadow changes in pale mode */
+    /* transition: background-color 0.5s ease, box-shadow 0.5s ease; */
+}
+
+h1, h2 {
+    text-align: center;
+    margin-bottom: 0.8em;
+}
+h1 { font-size: 2.1em; color: #ff6b6b; /* Coral red */ text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+h2 { font-size: 1.6em; color: #feca57; /* Saffron yellow */ }
+
+p, label { font-size: 1rem; margin-bottom: 0.8em; }
+a { color: #48dbfb; /* Bright cyan */ text-decoration: none; font-weight: bold; }
+a:hover { text-decoration: underline; color: #0abde3; }
+
+/* --- Forms --- */
+form { margin-top: 25px; display: flex; flex-direction: column; align-items: stretch; }
+form label { margin-bottom: 8px; font-weight: bold; color: #555; }
+form input[type="text"] { padding: 12px 15px; margin-bottom: 18px; border: 2px solid #eee; border-radius: 8px; font-size: 1rem; width: 100%; box-sizing: border-box; transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+form input[type="text"]:focus { border-color: #ff9f43; /* Orange focus */ outline: none; box-shadow: 0 0 8px rgba(255, 159, 67, 0.4); }
+form button { padding: 14px 20px; background: linear-gradient(45deg, #5f27cd, #9b59b6); /* Purple gradient */ color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
+form button:hover:not(:disabled) { background: linear-gradient(45deg, #481b9f, #8e44ad); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+form button:disabled { background: #bdc3c7; /* Grey */ cursor: not-allowed; opacity: 0.8; box-shadow: none; transform: none; }
+
+/* --- Eggs & Animation --- */
+#egg-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; pointer-events: none; z-index: 0; }
+.easter-egg {
+    position: absolute;
+    display: block; /* Ensure it's a block element for sizing */
+    /* --- Size Constraint --- */
+    width: auto; /* Let aspect ratio determine width initially */
+    height: auto; /* Let aspect ratio determine height initially */
+    max-width: 40px !important;  /* Force maximum width */
+    max-height: 40px !important; /* Force maximum height */
+    /* --- End Size Constraint --- */
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out, filter 0.3s ease; /* Shortened transform transition */
+    will-change: transform, opacity;
+    z-index: 1;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3)); /* Slightly smaller shadow */
+    opacity: 1;
+    transform-origin: center center; /* Ensure scaling/rotation is centered */
+}
+.easter-egg:hover { transform: scale(1.15) !important; 
+    filter: brightness(1.1) drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
+    z-index: 10;
+}
+.easter-egg.correct-hint-egg { /* Style for the correct egg when clicked */ animation: glow 1.5s infinite alternate; }
+.easter-egg.wrong-hint-egg { /* Style for wrong egg when clicked */ animation: shake 0.5s ease-in-out; }
+
+@keyframes glow {
+  from { filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.2)) brightness(1); }
+  to { filter: drop-shadow(3px 3px 10px #ffdd59) brightness(1.3); } /* Yellow glow */
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-2deg); }
+  75% { transform: translateX(5px) rotate(2deg); }
+}
+
+/* --- Hint Styles --- */
+#hint-container { display: none; margin-top: 25px; padding: 15px 20px; background-color: #fffae1; /* Creamy yellow */ border: 2px dashed #feca57; border-radius: 8px; color: #8d6e63; /* Brownish text */ font-style: italic; text-align: center; }
+#hint-container strong { color: #6d4c41; font-style: normal; font-weight: bold; }
+
+/* --- Loading Indicator Spinner --- */
+#loading-indicator { display: none; padding: 15px; margin-top: 20px; text-align: center; font-weight: bold; color: #555; }
+.spinner { border: 5px solid rgba(0, 0, 0, 0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: #5f27cd; /* Purple spinner */ animation: spin 1s linear infinite; display: inline-block; margin-left: 15px; vertical-align: middle; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- Flash Messages --- */
+.flashes { list-style: none; padding: 0; margin: 0 0 20px 0; }
+.flashes li { padding: 12px 18px; margin-bottom: 12px; border-radius: 8px; border: 1px solid transparent; font-size: 1rem; font-weight: bold; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.flashes li.warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+.flashes li.error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+.flashes li.info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+.flashes li.success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    body { font-size: 15px; }
+    .content-wrapper { margin: 10px; padding: 15px; }
+    h1 { font-size: 1.9em; }
+    h2 { font-size: 1.4em; }
+    form input[type="text"], form button { padding: 12px 15px; font-size: 1rem; }
+    .easter-egg { width: 30px; }
+}

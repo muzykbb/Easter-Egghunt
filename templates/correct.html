@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correct!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body> <!-- No pale mode needed here -->
+    <div class="content-wrapper">
+        <h1>Correct!</h1>
+        <p>You solved step {{ step_id }}.</p>
+        <h2>Next Clue Location:</h2>
+        <p>{{ next_location_description }}</p>
+        <p>Scan the QR code there to proceed to the next question.</p>
+    </div>
+
+    <!-- Egg animations can still be on success pages -->
+    <div id="egg-container"></div>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

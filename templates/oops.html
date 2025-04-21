@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACCESS DENIED</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #a83232; /* Dark Red */
+            color: #fdd;
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            cursor: pointer; /* Indicate clicking anywhere works */
+        }
+        .oops-container {
+            background-color: rgba(0,0,0,0.5);
+            padding: 30px 40px;
+            border-radius: 10px;
+            border: 3px dashed #ff6b6b;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5), inset 0 0 10px #333;
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            color: #ff6b6b; /* Light Red/Coral */
+            text-shadow: 0 0 5px #ff4757, 0 0 10px #ff4757;
+            animation: pulse-err 1s infinite alternate; /* Use existing animation */
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            color: #fcc;
+        }
+        small {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #bbb;
+            font-style: italic;
+        }
+        @keyframes pulse-err { from { opacity: 1; } to { opacity: 0.7; } }
+    </style>
+</head>
+<body>
+    <div class="oops-container">
+        <h1>ACCESS VIOLATION!</h1>
+        <p>Unauthorized Function Attempted!<br>Security countermeasures engaged. System logging initiated.<br>Returning to non-secure interface...</p>
+        <!-- Display flash message if needed -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                 <p style="font-size: 0.9em; color: #fdd; border-top: 1px solid #555; padding-top: 10px;"><em>{% for category, message in messages %}{{ message }}{% endfor %}</em></p>
+            {% endif %}
+        {% endwith %}
+        <small>(Click anywhere to proceed immediately)</small>
+    </div>
+
+    <script>
+        function returnHome() {
+            console.log("Oops clicked, returning home.");
+            window.location.href = "{{ url_for('home') }}";
+            // Clean up listeners to be safe
+            document.body.removeEventListener('click', returnHome);
+            clearTimeout(redirectTimer); // Clear timer if click happens first
+        }
+
+        // Set timer to redirect after 3 seconds
+        const redirectTimer = setTimeout(returnHome, 3000);
+
+        // Add listener to redirect immediately on click
+        document.body.addEventListener('click', returnHome, { once: true });
+
+    </script>
+</body>
+</html>

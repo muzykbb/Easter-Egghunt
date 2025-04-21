@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easter Egg Hunt!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styles specific to home page */
+        .home-content {
+            text-align: center;
+            padding-top: 5vh; /* Add some space at the top */
+        }
+        .home-content h1 {
+            font-size: 2.8em; /* Larger title */
+            color: #ff6347; /* Tomato color */
+            margin-bottom: 20px;
+             text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+        }
+        .home-content p {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 30px;
+             max-width: 600px;
+             margin-left: auto;
+             margin-right: auto;
+        }
+        #start-hunt-button {
+            /* Style like form buttons but maybe different color */
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #1e90ff, #4682b4); /* Dodger blue gradient */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            margin-bottom: 20px; /* Space below button */
+        }
+         #start-hunt-button:hover:not(:disabled) {
+            background: linear-gradient(45deg, #1c86ee, #417ca7);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+         #start-hunt-button:disabled {
+             background: #bdc3c7;
+             cursor: not-allowed;
+             opacity: 0.7;
+             box-shadow: none;
+        }
+        #home-egg-status {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+            display: none; /* Hidden initially */
+            height: 2em; /* Reserve space to prevent jump */
+        }
+         #home-egg-status span {
+             color: #dc3545; /* Red */
+         }
+    </style>
+</head>
+<!-- Pass admin status to JS -->
+<body>
+    <div class="content-wrapper home-content"> <!-- Added home-content class -->
+
+        <h1>Welcome to the Hunt!</h1>
+        <p>Get ready to test your wits and find the hidden treasures. Click the button below to start the challenge!</p>
+
+        <!-- Start Button -->
+        <button id="start-hunt-button">Start the Hunt!</button>
+
+        <!-- Status display for clicking eggs -->
+        <p id="home-egg-status">
+            Eggs Found: <span id="found-count">0</span> / <span id="total-count">16</span>
+        </p>
+
+        <!-- Flash messages if any -->
+         {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes style="max-width: 500px; margin: 15px auto;"> <!-- Center flashes -->
+                {% for category, message in messages %}
+                    <li class="{{ category or 'info' }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+    </div> <!-- End content-wrapper -->
+
+    <!-- Egg container remains outside content for full screen -->
+    <div id="egg-container"></div>
+
+    <!-- Load JS -->
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

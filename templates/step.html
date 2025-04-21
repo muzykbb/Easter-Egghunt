@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hunt Step {{ step_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Combined Styles from previous steps - Ensure these are loaded, either here or in style.css */
+        #loading-indicator { display: none; padding: 15px; margin-top: 15px; text-align: center; font-weight: bold; color: #555;}
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #007bff; animation: spin 1s ease infinite; display: inline-block; margin-left: 10px; vertical-align: middle;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}
+        #hint-container { display: none; margin-top: 20px; padding: 15px; background-color: #fff8e1; border: 1px dashed #ffca28; border-radius: 5px; color: #795548; font-style: italic;}
+        #hint-container strong { color: #5d4037; font-style: normal; }
+        form button:disabled { background: #cccccc; cursor: not-allowed; opacity: 0.7;}
+        .flashes { list-style: none; padding: 0; margin: 0 0 15px 0; }
+        .flashes li { padding: 10px 15px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; font-size: 0.95em; }
+        .flashes li.warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+        .flashes li.error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .flashes li.info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        .flashes li.success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        body.pale-mode { filter: saturate(60%) brightness(105%); transition: filter 0.5s ease-out; }
+        /* Minigame Styles */
+        #minigame-instructions { padding: 10px 15px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 5px; margin-top: 15px; margin-bottom: 15px; text-align: center; font-weight: bold; color: #0c5460; }
+        #minigame-win-message { padding: 15px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-radius: 5px; text-align: center; font-weight: bold; margin-top: 15px; display: none; }
+        #minigame-basket { position: absolute; bottom: 10%; right: 5px; height: auto; width: auto; max-width: 40%; z-index: 0; pointer-events: none; display: none; transition: transform 0.3s ease-out;} /* Adjusted bottom */
+    </style>
+</head>
+
+<!-- SINGLE Correct Body Tag with ALL Data Attributes -->
+<body data-hint-egg-id="{{ hint_egg_id if hint_egg_id is not none else '' }}"
+      data-current-scale="{{ current_scale }}"
+      data-first-access-done="{{ 'true' if admin_first_access_done else 'false' }}"
+      data-is-minigame-type="{{ is_minigame_type }}"> <!-- Use the new type flag -->
+
+    <div class="content-wrapper">
+        <!-- Flashes -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes>
+                {% for category, message in messages %}
+                    <li class="{{ category or 'info' }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <h1>Step {{ step_id }}</h1>
+        <h2>Question:</h2>
+        <p>{{ question }}</p>
+
+        <!-- Hint container (Only for standard steps) -->
+        {% if is_minigame_type == 'standard' %}
+        <div id="hint-container" style="display: none;"> <!-- Start hidden -->
+            <strong>Hint:</strong> <span id="hint-text">{{ hint }}</span>
+        </div>
+        {% endif %}
+        <!-- REMOVED DUPLICATE HINT BLOCKS -->
+
+        <!-- Minigame Instructions/Status (Conditionally Displayed) -->
+        {% if is_minigame_type == 'basket' or is_minigame_type == 'moving_basket' %}
+        <div id="minigame-instructions">
+             Hit all 16 eggs into the
+             {% if is_minigame_type == 'moving_basket' %}moving{% endif %}
+             basket in the bottom-right corner!
+        </div>
+        <div id="minigame-win-message" style="display: none;"> <!-- Start hidden -->
+            Success! You corralled the eggs! You can now answer the question.
+        </div>
+        {% endif %}
+
+        <!-- *** ADDED MISSING FORM BLOCK *** -->
+        <form id="answer-form" action="{{ url_for('check_answer', step_id=step_id) }}" method="post">
+            <label for="answer">Your Answer:</label>
+            <input type="text" id="answer" name="answer" required autofocus>
+            <!-- Disable button based on minigame type -->
+            <button id="submit-button" type="submit" {% if is_minigame_type != 'standard' %}disabled{% endif %}>
+                {% if is_minigame_type != 'standard' %}Complete Minigame First{% else %}Check Answer{% endif %}
+            </button>
+        </form>
+        <!-- *** END ADDED FORM BLOCK *** -->
+
+
+        <!-- Hidden Exploit (Conditionally Displayed?) -->
+        {% if is_minigame_type == 'standard' %}
+             {{ html_exploit | safe }}
+        {% endif %}
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" style="display: none;"> <!-- Start hidden -->
+            Checking answer... <div class="spinner"></div>
+        </div>
+
+    </div> <!-- End content-wrapper -->
+
+    <!-- SINGLE Egg container -->
+    <div id="egg-container">
+        <!-- Correct Basket Image Location -->
+        <img id="minigame-basket" src="{{ url_for('static', filename='images/basket.png') }}" alt="Target Basket" style="display: none;">
+    </div>
+
+    <!-- Load JS at the end -->
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <script>
+        // Script for loading indicator (Simplified)
+        const answerForm = document.getElementById('answer-form');
+        if (answerForm) {
+            answerForm.addEventListener('submit', function(event) {
+                const submitBtn = document.getElementById('submit-button');
+                const loadingDiv = document.getElementById('loading-indicator');
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Checking...'; }
+                if (loadingDiv) loadingDiv.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>

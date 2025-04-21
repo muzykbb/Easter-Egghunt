@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print QR Codes - Easter Egg Hunt</title>
+    <!-- Optional: Link main style for consistency, or use print-specific styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        .qr-print-item {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            page-break-inside: avoid; /* Try to prevent breaking inside an item */
+            overflow: hidden; /* Clear floats if any */
+            display: inline-block; /* Arrange side-by-side potentially */
+            width: 45%; /* Roughly two columns */
+            vertical-align: top;
+             margin-right: 1%;
+             box-sizing: border-box;
+        }
+        .qr-print-item img {
+            max-width: 180px; /* Adjust size for printing */
+            height: auto;
+            display: block;
+            margin: 10px auto;
+            border: 1px solid #eee;
+        }
+        .qr-print-item h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            font-size: 1.2em;
+        }
+        .qr-print-item p {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+         .qr-print-item .url-display {
+            font-size: 0.7em;
+            word-break: break-all;
+            color: #555;
+         }
+         .no-print {
+            margin-bottom: 20px;
+         }
+
+        /* Print specific styles */
+        @media print {
+            body { margin: 0.5cm; } /* Reduce margins for printing */
+            .no-print { display: none; } /* Hide buttons/links when printing */
+            .content-wrapper { /* Remove shadows/backgrounds for printing */
+                box-shadow: none;
+                background-color: transparent;
+                border: none;
+                padding: 0;
+                margin: 0;
+            }
+             .qr-print-item {
+                border: 1px dashed #999; /* Lighter border for print */
+                width: 48%; /* Adjust for print margins */
+                margin-right: 0.5%;
+                margin-left: 0.5%;
+                margin-bottom: 10px;
+                 box-shadow: none;
+                 background-color: transparent;
+             }
+             .qr-print-item img { max-width: 150px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+             <h1>Printable QR Codes</h1>
+             <p>Print this page and cut out the codes to place at the physical locations.</p>
+             <button onclick="window.print();">Print Page</button>
+             <a href="{{ url_for('admin_area') }}" style="margin-left: 15px;">Back to Admin</a>
+             <hr>
+        </div>
+
+        {% if error %}
+            <p style="color: red; text-align: center; font-weight: bold;">
+                Could not generate QR codes. Ensure the server has a valid local network IP address.
+            </p>
+        {% elif qr_codes %}
+            {% for qr in qr_codes %}
+            <div class="qr-print-item">
+                <h3>Step {{ qr.step_id }}</h3>
+                <p><strong>Placement Hint:</strong><br>{{ qr.location_hint }}</p>
+                {% if qr.qr_uri %}
+                    <img src="{{ qr.qr_uri }}" alt="QR Code for Step {{ qr.step_id }}">
+                    <p class="url-display">URL: {{ qr.url }}</p>
+                {% else %}
+                    <p style="color: red;">Error generating QR image.</p>
+                    <p class="url-display">URL: {{ qr.url }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+             <p style="text-align: center;">No QR codes generated (is hunt data loaded?).</p>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>
